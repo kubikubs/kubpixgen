@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import ImageUploader from './components/ImageUploader';
 import Controls from './components/Controls';
-import AnimationPreview from './components/AnimationPreview';
 import { processImage } from './utils/canvasProcessor';
-import { generateGif } from './utils/gifGenerator';
 
 function App() {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -12,18 +10,11 @@ function App() {
     const [colorCount, setColorCount] = useState<number>(8);
     const [removeBg, setRemoveBg] = useState<boolean>(false);
     const [processing, setProcessing] = useState<boolean>(false);
-    const [generatingGif, setGeneratingGif] = useState<boolean>(false);
     const [lineartMode, setLineartMode] = useState<boolean>(false);
     const [colorizeMode, setColorizeMode] = useState<'none' | 'warm' | 'cold' | 'custom'>('none');
     const [customColor, setCustomColor] = useState<string>('#ff0000');
     const [referenceImage, setReferenceImage] = useState<string | null>(null);
     const [enablePixelation, setEnablePixelation] = useState<boolean>(true);
-
-    // Sprite State
-    const [isSpriteSheet, setIsSpriteSheet] = useState<boolean>(false);
-    const [rows, setRows] = useState<number>(4);
-    const [cols, setCols] = useState<number>(4);
-    const [fps, setFps] = useState<number>(8);
 
     const handleImageSelected = (file: File) => {
         const url = URL.createObjectURL(file);
@@ -87,26 +78,6 @@ function App() {
         }
     };
 
-    const handleDownloadGif = async () => {
-        if (!isSpriteSheet) return;
-        const source = processedImage || originalImage;
-        if (!source) return;
-
-        setGeneratingGif(true);
-        try {
-            const gifUrl = await generateGif(source, rows, cols, fps);
-            const link = document.createElement('a');
-            link.download = 'animation.gif';
-            link.href = gifUrl;
-            link.click();
-        } catch (error) {
-            console.error("GIF generation failed", error);
-            alert("Failed to generate GIF.");
-        } finally {
-            setGeneratingGif(false);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gray-900 text-white p-8 font-sans">
             <div className="max-w-6xl mx-auto">
@@ -139,15 +110,6 @@ function App() {
                                     enablePixelation={enablePixelation}
                                     setEnablePixelation={setEnablePixelation}
 
-                                    isSpriteSheet={isSpriteSheet}
-                                    setIsSpriteSheet={setIsSpriteSheet}
-                                    rows={rows}
-                                    setRows={setRows}
-                                    cols={cols}
-                                    setCols={setCols}
-                                    fps={fps}
-                                    setFps={setFps}
-
                                     lineartMode={lineartMode}
                                     setLineartMode={setLineartMode}
                                     colorizeMode={colorizeMode}
@@ -158,9 +120,7 @@ function App() {
                                     setReferenceImage={setReferenceImage}
 
                                     onExport={handleDownload}
-                                    onExportGif={handleDownloadGif}
                                     processing={processing}
-                                    generatingGif={generatingGif}
                                 />
                             </div>
                         )}
@@ -200,20 +160,6 @@ function App() {
                     }
                 `}</style>
                         </div>
-
-                        {/* Live Animation Preview */}
-                        {isSpriteSheet && (processedImage || originalImage) && (
-                            <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-                                <h3 className="text-lg font-semibold text-gray-200 mb-2">Live Animation Preview</h3>
-                                <AnimationPreview
-                                    imageSrc={processedImage || originalImage}
-                                    rows={rows}
-                                    cols={cols}
-                                    fps={fps}
-                                    isPlaying={true}
-                                />
-                            </div>
-                        )}
                     </div>
 
                 </main>
