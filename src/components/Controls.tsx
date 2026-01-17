@@ -32,7 +32,9 @@ interface ControlsProps {
     setFps: (n: number) => void;
 
     onExport: () => void;
+    onExportGif?: () => void;
     processing: boolean;
+    generatingGif?: boolean;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -63,7 +65,9 @@ const Controls: React.FC<ControlsProps> = ({
     setFps,
 
     onExport,
+    onExportGif,
     processing,
+    generatingGif,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 

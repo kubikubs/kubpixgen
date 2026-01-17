@@ -3,6 +3,7 @@ import ImageUploader from './components/ImageUploader';
 import Controls from './components/Controls';
 import AnimationPreview from './components/AnimationPreview';
 import { processImage } from './utils/canvasProcessor';
+import { generateGif } from './utils/gifGenerator';
 
 function App() {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -11,6 +12,7 @@ function App() {
     const [colorCount, setColorCount] = useState<number>(8);
     const [removeBg, setRemoveBg] = useState<boolean>(false);
     const [processing, setProcessing] = useState<boolean>(false);
+    const [generatingGif, setGeneratingGif] = useState<boolean>(false);
     const [lineartMode, setLineartMode] = useState<boolean>(false);
     const [colorizeMode, setColorizeMode] = useState<'none' | 'warm' | 'cold' | 'custom'>('none');
     const [customColor, setCustomColor] = useState<string>('#ff0000');
@@ -85,6 +87,26 @@ function App() {
         }
     };
 
+    const handleDownloadGif = async () => {
+        if (!isSpriteSheet) return;
+        const source = processedImage || originalImage;
+        if (!source) return;
+
+        setGeneratingGif(true);
+        try {
+            const gifUrl = await generateGif(source, rows, cols, fps);
+            const link = document.createElement('a');
+            link.download = 'animation.gif';
+            link.href = gifUrl;
+            link.click();
+        } catch (error) {
+            console.error("GIF generation failed", error);
+            alert("Failed to generate GIF.");
+        } finally {
+            setGeneratingGif(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-900 text-white p-8 font-sans">
             <div className="max-w-6xl mx-auto">
@@ -136,7 +158,9 @@ function App() {
                                     setReferenceImage={setReferenceImage}
 
                                     onExport={handleDownload}
+                                    onExportGif={handleDownloadGif}
                                     processing={processing}
+                                    generatingGif={generatingGif}
                                 />
                             </div>
                         )}
