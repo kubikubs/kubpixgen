@@ -17,8 +17,8 @@ const AnimationPreview: React.FC<AnimationPreviewProps> = ({
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [frameIndex, setFrameIndex] = useState(0);
-    const requestRef = useRef<number>();
-    const previousTimeRef = useRef<number>();
+    const requestRef = useRef<number | null>(null);
+    const previousTimeRef = useRef<number | undefined>(undefined);
 
     // Reset frame when image or grid changes
     useEffect(() => {
@@ -47,11 +47,11 @@ const AnimationPreview: React.FC<AnimationPreviewProps> = ({
         if (isPlaying && imageSrc) {
             requestRef.current = requestAnimationFrame(animate);
         } else {
-            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
             previousTimeRef.current = undefined;
         }
         return () => {
-            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
         };
     }, [isPlaying, fps, rows, cols, imageSrc]);
 
