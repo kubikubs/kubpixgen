@@ -21,6 +21,16 @@ interface ControlsProps {
     enablePixelation: boolean;
     setEnablePixelation: (enabled: boolean) => void;
 
+    // Sprite Props
+    isSpriteSheet: boolean;
+    setIsSpriteSheet: (is: boolean) => void;
+    rows: number;
+    setRows: (n: number) => void;
+    cols: number;
+    setCols: (n: number) => void;
+    fps: number;
+    setFps: (n: number) => void;
+
     onExport: () => void;
     processing: boolean;
 }
@@ -42,6 +52,16 @@ const Controls: React.FC<ControlsProps> = ({
     referenceImage,
     enablePixelation,
     setEnablePixelation,
+
+    isSpriteSheet,
+    setIsSpriteSheet,
+    rows,
+    setRows,
+    cols,
+    setCols,
+    fps,
+    setFps,
+
     onExport,
     processing,
 }) => {
@@ -86,6 +106,58 @@ const Controls: React.FC<ControlsProps> = ({
                     />
                 </div>
             )}
+
+            {/* Sprite Sheet Settings */}
+            <div className="border-t border-gray-700 py-2"></div>
+            <div className="space-y-3">
+                <label className="flex items-center justify-between cursor-pointer group">
+                    <span className="text-sm font-medium text-gray-300 group-hover:text-white transition">Treat as Sprite Sheet</span>
+                    <input
+                        type="checkbox"
+                        checked={isSpriteSheet}
+                        onChange={(e) => setIsSpriteSheet(e.target.checked)}
+                        className="accent-orange-500 h-5 w-5"
+                    />
+                </label>
+
+                {isSpriteSheet && (
+                    <div className="grid grid-cols-2 gap-4 bg-gray-900 p-3 rounded-lg">
+                        <div>
+                            <label className="block text-xs text-gray-400 mb-1">Cols (Horz)</label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={cols}
+                                onChange={(e) => setCols(Math.max(1, Number(e.target.value)))}
+                                className="w-full bg-gray-700 rounded px-2 py-1 text-white text-sm focus:ring-1 focus:ring-orange-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-400 mb-1">Rows (Vert)</label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={rows}
+                                onChange={(e) => setRows(Math.max(1, Number(e.target.value)))}
+                                className="w-full bg-gray-700 rounded px-2 py-1 text-white text-sm focus:ring-1 focus:ring-orange-500 outline-none"
+                            />
+                        </div>
+                        <div className="col-span-2">
+                            <label className="block text-xs text-gray-400 mb-1">Animation Speed: {fps} FPS</label>
+                            <input
+                                type="range"
+                                min="1"
+                                max="24"
+                                step="1"
+                                value={fps}
+                                onChange={(e) => setFps(Number(e.target.value))}
+                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className="border-t border-gray-700 py-2"></div>
 
             {/* Color Count */}
             <div>

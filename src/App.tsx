@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import ImageUploader from './components/ImageUploader';
 import Controls from './components/Controls';
+import AnimationPreview from './components/AnimationPreview';
 import { processImage } from './utils/canvasProcessor';
 
 function App() {
@@ -15,6 +16,12 @@ function App() {
     const [customColor, setCustomColor] = useState<string>('#ff0000');
     const [referenceImage, setReferenceImage] = useState<string | null>(null);
     const [enablePixelation, setEnablePixelation] = useState<boolean>(true);
+
+    // Sprite State
+    const [isSpriteSheet, setIsSpriteSheet] = useState<boolean>(false);
+    const [rows, setRows] = useState<number>(4);
+    const [cols, setCols] = useState<number>(4);
+    const [fps, setFps] = useState<number>(8);
 
     const handleImageSelected = (file: File) => {
         const url = URL.createObjectURL(file);
@@ -107,6 +114,18 @@ function App() {
                                     removeBg={removeBg}
                                     setRemoveBg={setRemoveBg}
 
+                                    enablePixelation={enablePixelation}
+                                    setEnablePixelation={setEnablePixelation}
+
+                                    isSpriteSheet={isSpriteSheet}
+                                    setIsSpriteSheet={setIsSpriteSheet}
+                                    rows={rows}
+                                    setRows={setRows}
+                                    cols={cols}
+                                    setCols={setCols}
+                                    fps={fps}
+                                    setFps={setFps}
+
                                     lineartMode={lineartMode}
                                     setLineartMode={setLineartMode}
                                     colorizeMode={colorizeMode}
@@ -116,9 +135,6 @@ function App() {
                                     referenceImage={referenceImage}
                                     setReferenceImage={setReferenceImage}
 
-                                    enablePixelation={enablePixelation}
-                                    setEnablePixelation={setEnablePixelation}
-
                                     onExport={handleDownload}
                                     processing={processing}
                                 />
@@ -126,38 +142,54 @@ function App() {
                         )}
                     </div>
 
-                    <div className="bg-checkered p-4 rounded-xl shadow-2xl min-h-[500px] flex items-center justify-center border border-gray-700 relative overflow-hidden group">
-                        {!originalImage ? (
-                            <div className="text-gray-500 font-medium">Preview will appear here</div>
-                        ) : (
-                            <div className="relative w-full h-full flex items-center justify-center">
-                                <img
-                                    src={processedImage || originalImage}
-                                    alt="Preview"
-                                    className={`max-w-full max-h-[600px] object-contain shadow-2xl transition-all duration-300 ${processing ? 'blur-sm opacity-50' : 'image-pixelated'}`}
-                                    style={{ imageRendering: 'pixelated' }}
+                    <div className="flex flex-col gap-6">
+                        <div className="bg-checkered p-4 rounded-xl shadow-2xl min-h-[500px] flex items-center justify-center border border-gray-700 relative overflow-hidden group">
+                            {!originalImage ? (
+                                <div className="text-gray-500 font-medium">Preview will appear here</div>
+                            ) : (
+                                <div className="relative w-full h-full flex items-center justify-center">
+                                    <img
+                                        src={processedImage || originalImage}
+                                        alt="Preview"
+                                        className={`max-w-full max-h-[600px] object-contain shadow-2xl transition-all duration-300 ${processing ? 'blur-sm opacity-50' : 'image-pixelated'}`}
+                                        style={{ imageRendering: 'pixelated' }}
+                                    />
+                                    {processing && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Styles for checkered background */}
+                            <style>{`
+                    .bg-checkered {
+                        background-color: #1a1a1a;
+                        background-image:
+                            linear-gradient(45deg, #222 25%, transparent 25%),
+                            linear-gradient(-45deg, #222 25%, transparent 25%),
+                            linear-gradient(45deg, transparent 75%, #222 75%),
+                            linear-gradient(-45deg, transparent 75%, #222 75%);
+                        background-size: 20px 20px;
+                        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+                    }
+                `}</style>
+                        </div>
+
+                        {/* Live Animation Preview */}
+                        {isSpriteSheet && (processedImage || originalImage) && (
+                            <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+                                <h3 className="text-lg font-semibold text-gray-200 mb-2">Live Animation Preview</h3>
+                                <AnimationPreview
+                                    imageSrc={processedImage || originalImage}
+                                    rows={rows}
+                                    cols={cols}
+                                    fps={fps}
+                                    isPlaying={true}
                                 />
-                                {processing && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-                                    </div>
-                                )}
                             </div>
                         )}
-
-                        {/* Styles for checkered background */}
-                        <style>{`
-                .bg-checkered {
-                    background-color: #1a1a1a;
-                    background-image:
-                        linear-gradient(45deg, #222 25%, transparent 25%),
-                        linear-gradient(-45deg, #222 25%, transparent 25%),
-                        linear-gradient(45deg, transparent 75%, #222 75%),
-                        linear-gradient(-45deg, transparent 75%, #222 75%);
-                    background-size: 20px 20px;
-                    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-                }
-            `}</style>
                     </div>
 
                 </main>
