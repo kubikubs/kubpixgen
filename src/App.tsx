@@ -8,8 +8,10 @@ function App() {
     const [processedImage, setProcessedImage] = useState<string | null>(null);
     const [pixelSize, setPixelSize] = useState<number>(12);
     const [colorCount, setColorCount] = useState<number>(8);
-    const [removeBg, setRemoveBg] = useState<boolean>(false);
-    const [processing, setProcessing] = useState<boolean>(false);
+    const [lineartMode, setLineartMode] = useState<boolean>(false);
+    const [colorizeMode, setColorizeMode] = useState<'none' | 'warm' | 'cold' | 'custom'>('none');
+    const [customColor, setCustomColor] = useState<string>('#ff0000');
+    const [referenceImage, setReferenceImage] = useState<string | null>(null);
 
     const handleImageSelected = (file: File) => {
         const url = URL.createObjectURL(file);
@@ -30,6 +32,10 @@ function App() {
                 pixelSize,
                 colorCount,
                 removeBg,
+                lineartMode,
+                colorizeMode,
+                customColor,
+                referenceImageSrc: referenceImage || undefined,
             });
             setProcessedImage(resultUrl);
         } catch (error) {
@@ -38,7 +44,7 @@ function App() {
         } finally {
             setProcessing(false);
         }
-    }, [originalImage, pixelSize, colorCount, removeBg]);
+    }, [originalImage, pixelSize, colorCount, removeBg, lineartMode, colorizeMode, customColor, referenceImage]);
 
     // Debounced auto-update (optional, currently disabled to prefer explicit export/process for bg removal which is heavy)
     // But for simple pixelation it's fast. Background removal is the bottleneck.
@@ -52,7 +58,7 @@ function App() {
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [originalImage, pixelSize, colorCount, removeBg, runProcessing]);
+    }, [originalImage, pixelSize, colorCount, removeBg, lineartMode, colorizeMode, customColor, referenceImage, runProcessing]);
 
 
     const handleDownload = () => {
@@ -96,6 +102,16 @@ function App() {
                                     setColorCount={setColorCount}
                                     removeBg={removeBg}
                                     setRemoveBg={setRemoveBg}
+
+                                    lineartMode={lineartMode}
+                                    setLineartMode={setLineartMode}
+                                    colorizeMode={colorizeMode}
+                                    setColorizeMode={setColorizeMode}
+                                    customColor={customColor}
+                                    setCustomColor={setCustomColor}
+                                    referenceImage={referenceImage}
+                                    setReferenceImage={setReferenceImage}
+
                                     onExport={handleDownload}
                                     processing={processing}
                                 />
