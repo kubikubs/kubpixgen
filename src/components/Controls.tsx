@@ -18,6 +18,8 @@ interface ControlsProps {
 
     setReferenceImage: (img: string | null) => void;
     referenceImage: string | null;
+    enablePixelation: boolean;
+    setEnablePixelation: (enabled: boolean) => void;
 
     onExport: () => void;
     processing: boolean;
@@ -38,6 +40,8 @@ const Controls: React.FC<ControlsProps> = ({
     setCustomColor,
     setReferenceImage,
     referenceImage,
+    enablePixelation,
+    setEnablePixelation,
     onExport,
     processing,
 }) => {
@@ -52,21 +56,36 @@ const Controls: React.FC<ControlsProps> = ({
 
     return (
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
-            {/* Pixel Resolution */}
-            <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pixel Size (Resolution): {pixelSize}px
+
+            <div className="space-y-3">
+                <label className="flex items-center justify-between cursor-pointer group">
+                    <span className="text-sm font-medium text-gray-300 group-hover:text-white transition">Enable Pixelation</span>
+                    <input
+                        type="checkbox"
+                        checked={enablePixelation}
+                        onChange={(e) => setEnablePixelation(e.target.checked)}
+                        className="accent-pink-500 h-5 w-5"
+                    />
                 </label>
-                <input
-                    type="range"
-                    min="4"
-                    max="64"
-                    step="2"
-                    value={pixelSize}
-                    onChange={(e) => setPixelSize(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
             </div>
+
+            {/* Pixel Resolution */}
+            {enablePixelation && (
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Pixel Size (Resolution): {pixelSize}px
+                    </label>
+                    <input
+                        type="range"
+                        min="4"
+                        max="64"
+                        step="2"
+                        value={pixelSize}
+                        onChange={(e) => setPixelSize(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                </div>
+            )}
 
             {/* Color Count */}
             <div>
@@ -159,8 +178,8 @@ const Controls: React.FC<ControlsProps> = ({
                             key={mode}
                             onClick={() => setColorizeMode(mode)}
                             className={`px-3 py-2 rounded-md capitalize text-sm font-medium transition-all ${colorizeMode === mode
-                                    ? 'bg-indigo-600 text-white shadow-lg scale-105'
-                                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                                ? 'bg-indigo-600 text-white shadow-lg scale-105'
+                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                                 }`}
                         >
                             {mode}

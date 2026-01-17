@@ -14,6 +14,7 @@ function App() {
     const [colorizeMode, setColorizeMode] = useState<'none' | 'warm' | 'cold' | 'custom'>('none');
     const [customColor, setCustomColor] = useState<string>('#ff0000');
     const [referenceImage, setReferenceImage] = useState<string | null>(null);
+    const [enablePixelation, setEnablePixelation] = useState<boolean>(true);
 
     const handleImageSelected = (file: File) => {
         const url = URL.createObjectURL(file);
@@ -38,6 +39,7 @@ function App() {
                 colorizeMode,
                 customColor,
                 referenceImageSrc: referenceImage || undefined,
+                enablePixelation,
             });
             setProcessedImage(resultUrl);
         } catch (error) {
@@ -46,7 +48,7 @@ function App() {
         } finally {
             setProcessing(false);
         }
-    }, [originalImage, pixelSize, colorCount, removeBg, lineartMode, colorizeMode, customColor, referenceImage]);
+    }, [originalImage, pixelSize, colorCount, removeBg, lineartMode, colorizeMode, customColor, referenceImage, enablePixelation]);
 
     // Debounced auto-update (optional, currently disabled to prefer explicit export/process for bg removal which is heavy)
     // But for simple pixelation it's fast. Background removal is the bottleneck.
@@ -60,7 +62,7 @@ function App() {
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [originalImage, pixelSize, colorCount, removeBg, lineartMode, colorizeMode, customColor, referenceImage, runProcessing]);
+    }, [originalImage, pixelSize, colorCount, removeBg, lineartMode, colorizeMode, customColor, referenceImage, runProcessing, enablePixelation]);
 
 
     const handleDownload = () => {
@@ -113,6 +115,9 @@ function App() {
                                     setCustomColor={setCustomColor}
                                     referenceImage={referenceImage}
                                     setReferenceImage={setReferenceImage}
+
+                                    enablePixelation={enablePixelation}
+                                    setEnablePixelation={setEnablePixelation}
 
                                     onExport={handleDownload}
                                     processing={processing}
