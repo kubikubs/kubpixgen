@@ -8,6 +8,7 @@ interface PixelationOptions {
     lineartMode: boolean;
     colorizeMode: 'none' | 'warm' | 'cold' | 'custom';
     customColor?: string;
+    enablePixelation: boolean;
 }
 
 export const processImage = async (
@@ -51,7 +52,7 @@ export const processImage = async (
         customPalette = extractPalette(refImg, options.colorCount);
     }
 
-    return pixelate(sourceImage, options.pixelSize, options.colorCount, options.colorizeMode, options.customColor, customPalette);
+    return applyEffects(sourceImage, options.pixelSize, options.colorCount, options.colorizeMode, options.customColor, customPalette, options.enablePixelation);
 };
 
 const cleanLineart = async (img: HTMLImageElement): Promise<HTMLImageElement> => {
@@ -109,13 +110,14 @@ const extractPalette = (img: HTMLImageElement, k: number): number[][] => {
 };
 
 
-const pixelate = (
+const applyEffects = (
     img: HTMLImageElement | ImageBitmap,
     pixelSize: number,
     colorCount: number,
     colorizeMode: 'none' | 'warm' | 'cold' | 'custom',
     customColor?: string,
-    forcedPalette?: number[][] | null
+    forcedPalette?: number[][] | null,
+    enablePixelation: boolean = true
 ): string => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -125,21 +127,36 @@ const pixelate = (
     const w = img.width;
     const h = img.height;
 
-    // Calculate small dimensions
-    const smW = Math.max(1, Math.floor(w / pixelSize));
-    const smH = Math.max(1, Math.floor(h / pixelSize));
+    canvas.width = w;
+    canvas.height = h;
 
-    // Draw small
-    const smallCanvas = document.createElement('canvas');
-    smallCanvas.width = smW;
-    smallCanvas.height = smH;
-    const smallCtx = smallCanvas.getContext('2d');
-    if (!smallCtx) throw new Error("Could not get small canvas context");
+    // If pixelation is enabled, we process on a smaller canvas then scale up
+    // If disabled, we process on the full size canvas
 
-    smallCtx.drawImage(img, 0, 0, smW, smH);
+    let workingCanvas: HTMLCanvasElement;
+    let workingCtx: CanvasRenderingContext2D;
+    let finalW = w;
+    let finalH = h;
+
+    if (enablePixelation) {
+        const smW = Math.max(1, Math.floor(w / pixelSize));
+        const smH = Math.max(1, Math.floor(h / pixelSize));
+        workingCanvas = document.createElement('canvas');
+        workingCanvas.width = smW;
+        workingCanvas.height = smH;
+        finalW = smW;
+        finalH = smH;
+    } else {
+        workingCanvas = canvas; // Work directly on main canvas
+        workingCanvas.width = w;
+        workingCanvas.height = h;
+    }
+
+    workingCtx = workingCanvas.getContext('2d')!;
+    workingCtx.drawImage(img, 0, 0, finalW, finalH);
 
     // Get image data for processing
-    const imgData = smallCtx.getImageData(0, 0, smW, smH);
+    const imgData = workingCtx.getImageData(0, 0, finalW, finalH);
     const data = imgData.data;
 
     // 1. Apply Color Filters (BEFORE quantization)
@@ -154,15 +171,14 @@ const pixelate = (
 
     applyPalette(data, palette);
 
-    smallCtx.putImageData(imgData, 0, 0);
+    workingCtx.putImageData(imgData, 0, 0);
 
-    // Draw back scaled up
-    canvas.width = w;
-    canvas.height = h;
-
-    // Disable smoothing for pixelated look
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(smallCanvas, 0, 0, w, h);
+    // If we were working on a small canvas, draw it back to the main canvas scaled up
+    if (enablePixelation) {
+        // Disable smoothing for pixelated look
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(workingCanvas, 0, 0, w, h);
+    }
 
     return canvas.toDataURL('image/png');
 };
@@ -219,8 +235,14 @@ const applyColorFilter = (
 
 // Simple K-Means implementation
 const generatePalette = (data: Uint8ClampedArray, k: number): number[][] => {
+    // Optimization: Sampling
+    // If data is too large, random sample ~2000 pixels for centroid initialization
+    // For assignment, we iterate all, but for centroid calculation we can speed up.
+
     const pixels: number[][] = [];
-    for (let i = 0; i < data.length; i += 4) {
+    const step = Math.ceil(data.length / (4 * 2000)); // Target ~2000 samples
+
+    for (let i = 0; i < data.length; i += 4 * step) {
         // Skip fully transparent pixels
         if (data[i + 3] < 128) continue;
         pixels.push([data[i], data[i + 1], data[i + 2]]);
@@ -234,8 +256,8 @@ const generatePalette = (data: Uint8ClampedArray, k: number): number[][] => {
         centroids.push(pixels[Math.floor(Math.random() * pixels.length)]);
     }
 
-    // Iterations (limit to 10 for performance)
-    for (let iter = 0; iter < 10; iter++) {
+    // Iterations (limit to 5 for performance if not pixelated, to avoid hang)
+    for (let iter = 0; iter < 5; iter++) {
         const clusters: number[][][] = Array.from({ length: k }, () => []);
 
         // Assign pixels to nearest centroid
