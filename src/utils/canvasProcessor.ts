@@ -1,6 +1,9 @@
 import { removeBackground } from '@imgly/background-removal';
 
 interface PixelationOptions {
+    pixelSize: number;
+    colorCount: number;
+    removeBg: boolean;
     referenceImageSrc?: string;
     lineartMode: boolean;
     colorizeMode: 'none' | 'warm' | 'cold' | 'custom';

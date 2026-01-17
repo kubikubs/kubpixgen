@@ -8,6 +8,8 @@ function App() {
     const [processedImage, setProcessedImage] = useState<string | null>(null);
     const [pixelSize, setPixelSize] = useState<number>(12);
     const [colorCount, setColorCount] = useState<number>(8);
+    const [removeBg, setRemoveBg] = useState<boolean>(false);
+    const [processing, setProcessing] = useState<boolean>(false);
     const [lineartMode, setLineartMode] = useState<boolean>(false);
     const [colorizeMode, setColorizeMode] = useState<'none' | 'warm' | 'cold' | 'custom'>('none');
     const [customColor, setCustomColor] = useState<string>('#ff0000');
